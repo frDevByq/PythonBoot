@@ -1,5 +1,20 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
 [project]
 name = "pythonboot"
 version = "0.1.0"
+description = "A Spring Boot-inspired backend framework built on FastAPI"
+readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.34,<1",
+    "pydantic>=2.10,<3",
+    "pydantic-settings>=2.7,<3",
+    "wrapt>=1.17,<3",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pythonboot"]
