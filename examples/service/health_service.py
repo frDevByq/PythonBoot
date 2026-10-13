@@ -11,5 +11,5 @@ class HealthService:
     settings: HealthSettings = autowired()
 
     @logged # AOP 样例
-    def health(self) -> Health:
-        return Health(status=self.settings.status)
+    def health(self, service_name: str = "pythonboot", detail: bool = False) -> Health:
+        return Health(status=self.settings.status, service_name=service_name, detail=detail)

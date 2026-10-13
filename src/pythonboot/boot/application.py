@@ -12,9 +12,12 @@ from fastapi import FastAPI
 from pythonboot.beans import scan_components
 from pythonboot.boot.autoconfiguration import assemble_auto_configurations
 from pythonboot.context import ApplicationContext
-from pythonboot.config import load_configuration
+from pythonboot.config import configure_logging, load_configuration
 from pythonboot.util import ContextUtil
-from pythonboot.web import ApplicationContextMiddleware, register_exception_handlers, register_routers
+from pythonboot.web import (
+    ApplicationContextMiddleware, DateTimeFormatMiddleware, register_api_docs, register_exception_handlers,
+    register_routers, resolve_datetime_format, resolve_docs_options,
+)
 
 
 def create_app(
@@ -35,6 +38,9 @@ def create_app(
         tuple(scan_packages), exclude_modules=exclude_modules, exclude=excluded_classes,
     )
     configuration = load_configuration(config_dir) if config_dir is not None else {}
+    configure_logging(configuration)
+    docs_options = resolve_docs_options(configuration)
+    date_time_format = resolve_datetime_format(configuration)
     definitions = result.definitions
     if auto_configure:
         definitions = assemble_auto_configurations(
@@ -42,7 +48,13 @@ def create_app(
             exclude_classes=excluded_classes,
         )
     context = ApplicationContext(definitions, configuration=configuration)
-    app = FastAPI(title=title, version=version, **options)
+    fastapi_options = {
+        **options,
+        "docs_url": None,
+        "redoc_url": None,
+        "openapi_url": docs_options.openapi_path if docs_options.enabled else None,
+    }
+    app = FastAPI(title=title, version=version, **fastapi_options)
     app.state.context = context
     native_lifespan = app.router.lifespan_context
 
@@ -58,7 +70,11 @@ def create_app(
 
     app.router.lifespan_context = lifespan
     app.add_middleware(ApplicationContextMiddleware, context=context)
-    register_routers(app, result.modules, exclude=excluded_classes)
+    app.add_middleware(DateTimeFormatMiddleware, date_time_format=date_time_format)
+    register_api_docs(app, docs_options)
+    register_routers(
+        app, result.modules, exclude=excluded_classes, date_time_format=date_time_format,
+    )
     register_exception_handlers(app, result.modules, exclude=excluded_classes)
     return app
 

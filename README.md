@@ -49,6 +49,60 @@ app = TestApplication().app
 配置类继承
 `BaseSettings` 并使用 `@configuration_properties` 绑定 YAML 前缀，环境变量仍优先于 YAML。
 
+日志默认使用 `INFO` 级别及 Spring Boot 风格的控制台格式。可在 YAML 中设置根日志级别和指定 Logger 级别：
+
+```yaml
+pythonboot:
+  logging:
+    level: INFO
+    colors: true
+    loggers:
+      examples: DEBUG
+```
+
+需要自定义 Handler、Formatter 或输出目的地时，可在 `logging` 节点提供标准 Python
+`logging.config.dictConfig` 配置（必须包含 `version`）。所有 PythonBoot 框架配置均位于
+`pythonboot` 前缀下。
+
+## API 文档
+
+默认在 `/docs` 本地嵌入全屏 Scalar API Client，使用应用的 `/openapi.json`。可通过 YAML 切换
+文档界面或在生产环境关闭文档与 OpenAPI：
+
+```yaml
+pythonboot:
+  docs:
+    enabled: true
+    provider: scalar # scalar、swagger、redoc
+    path: /docs
+    openapi_path: /openapi.json
+  web:
+    datetime_format: "%Y-%m-%d %H:%M:%S"
+```
+
+将 `enabled` 设为 `false` 时，文档页面和 OpenAPI 端点均不会注册。
+`scalar` 为默认 API Reference 文档页面。
+
+Controller 的 `datetime` 路径、查询参数及 Pydantic 请求体字段默认按
+`YYYY-MM-DD HH:mm:ss` 解析；通过 `pythonboot.web.datetime_format` 修改格式。
+响应 JSON 中的 `datetime` 也按相同格式输出。
+
+单个参数或请求体字段可覆盖全局格式：
+
+```python
+from datetime import datetime
+from typing import Annotated
+
+from fastapi import Query
+from pythonboot import date_time, get
+
+@get("/report")
+def report(
+    created_at: Annotated[datetime, date_time("%Y/%m/%d %H:%M:%S"), Query()],
+) -> dict:
+    return {"created_at": created_at}
+```
+
 ```yaml
 # application.yml
 active:
@@ -272,6 +326,44 @@ service = ContextUtil.get_bean(HealthService, qualifier="local")
 懒加载及 AOP 语义。异步初始化使用 `await ContextUtil.aget_bean(TypeOrName)`。
 独立任务使用 `with ContextUtil.use(application.context): ...` 显式绑定；
 未绑定时明确报错，不从其他应用获取 Bean。也支持 `from pythonboot import ContextUtil`。
+
+Service 和 AOP 可通过 `RequestContextHolder` 获取当前 HTTP 请求：
+
+```python
+from pythonboot import RequestContextHolder, service
+
+@service
+class OrderService:
+    def current_user(self) -> str | None:
+        request = RequestContextHolder.get_request()
+        return request.headers.get("X-User-Id")
+```
+
+使用 `request.query_params`、`request.path_params` 获取查询和路径参数；异步方法中
+使用 `await request.json()` 获取 JSON 请求体。框架缓存已读取的请求体，避免重复消费。
+请求通过 `ContextVar` 隔离，支持异步接口及 FastAPI 的同步线程池接口；请求结束自动恢复
+绑定，请求外获取会报错。自行创建的线程不会自动继承上下文。
+
+请求上下文提供带锁的自定义数据 Map，每个请求独立创建，同步线程池与异步调用共享
+同一次请求的数据：
+
+```python
+RequestContextHolder.putData("user_id", 123)
+user_id = RequestContextHolder.getData("user_id")
+value = RequestContextHolder.getData("missing", "default")
+```
+
+Map 的读写操作线程安全，存入的可变对象需自行同步其内部修改。
+
+也可直接设置当前响应，响应头发送后不能再修改：
+
+```python
+response = RequestContextHolder.get_response()
+response.status_code = 201
+response.set_header("X-Trace-Id", "abc123")
+response.set_cookie("session", "token", httponly=True, secure=True)
+response.redirect("/login")
+```
 
 ## AOP
 

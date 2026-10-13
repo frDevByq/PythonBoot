@@ -3,6 +3,7 @@
 import inspect
 from dataclasses import dataclass
 from functools import wraps
+import sys
 from typing import Any, Callable
 
 import wrapt
@@ -11,6 +12,7 @@ from pythonboot.aop.decorators import AdviceDefinition
 from pythonboot.aop.joinpoint import JoinPoint, ProceedingJoinPoint
 from pythonboot.aop.pointcut import MethodInfo
 from pythonboot.exceptions import AopError
+from pythonboot.transaction.interceptor import TransactionInterceptor
 
 
 @dataclass(frozen=True)
@@ -37,10 +39,16 @@ class BeanProxy(wrapt.ObjectProxy):
 class AopEngine:
     def __init__(
         self, beans: tuple[tuple[str, type], ...],
-        resolver: Callable[[type, str], Any],
+        resolver: Callable[[type, str | None], Any],
+        *, async_resolver: Callable[[type, str | None], Any] | None = None,
     ) -> None:
         self._resolver = resolver
-        advisors: list[Advisor] = []
+        self._transaction_interceptor = TransactionInterceptor(resolver, async_resolver)
+        transaction_advice = TransactionInterceptor.invoke.__pythonboot_advices__[0]
+        advisors: list[Advisor] = [Advisor(
+            "pythonboot.transactionInterceptor", TransactionInterceptor, "invoke",
+            TransactionInterceptor.invoke, transaction_advice, -sys.maxsize - 1,
+        )]
         for bean_name, cls in beans:
             if not hasattr(cls, "__pythonboot_aspect__"):
                 continue
@@ -92,6 +100,8 @@ class AopEngine:
         return BeanProxy(target, methods) if methods else target
 
     def _advice(self, advisor: Advisor) -> Callable[..., Any]:
+        if advisor.aspect_type is TransactionInterceptor:
+            return self._transaction_interceptor.invoke
         aspect = self._resolver(advisor.aspect_type, advisor.bean_name)
         return getattr(aspect, advisor.method_name)
 

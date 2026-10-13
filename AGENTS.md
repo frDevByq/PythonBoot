@@ -44,6 +44,7 @@ src/pythonboot/
   beans/         Bean 元数据、声明装饰器和组件扫描
   context/       IoC 容器、依赖解析、作用域和生命周期
   aop/           切面、切点、通知及代理
+  transaction/   事务定义、管理器接口、状态及声明式事务元数据
   web/           FastAPI 路由、依赖桥接及异常处理适配
   config/        配置模型、配置源和属性绑定
   exceptions/    框架异常
@@ -64,6 +65,14 @@ main.py          本地示例 ASGI 入口
 - 框架源码 `src/pythonboot` 使用英文注释、文档字符串、日志及异常消息，不出现中文。
 - Controller 必须使用类并标记 `@controller`，路由声明在实例方法上；
   Service 必须使用类并标记 `@service`，通过构造器或 `autowired()` 属性注入依赖。
+- 示例项目的 Controller 必须通过 `tags` 设置中文业务标签；每个路由必须通过 `summary`
+  设置中文接口名称，供 OpenAPI 文档展示。
+- 示例项目的接口参数和 Pydantic 模型字段必须通过 `Path`、`Query`、`Body` 或 `Field`
+  设置中文 `title` 与 `description`，供 OpenAPI 文档展示。
+- 示例项目的所有 Controller 接口必须返回 `examples.domain.common.BaseResult[T]`，并在
+  路由声明中使用对应的 `response_model=BaseResult[T]`。成功响应使用
+  `ResponseCode.SUCCESS`（200）及消息“操作成功”；失败响应使用
+  `ResponseCode.FAILURE`（500）及传入的失败消息。
 - 使用绝对包导入及类型注解；需要包级公共接口时通过 `__init__.py` 显式导出。
 - 非必要不创建 `__init__.py`；仅用于公共接口导出、必要的包解析或实际初始化逻辑，
   不为目录标记或说明文字创建。`examples/__init__.py` 保留以避免同名第三方包遮蔽样例项目。
@@ -72,6 +81,9 @@ main.py          本地示例 ASGI 入口
 - 容器属于应用实例，禁止使用全局可变容器保存所有应用的 Bean。
 - `ContextUtil` 使用 ContextVar 绑定当前应用容器；在 lifespan 和请求中自动绑定，
   独立任务显式绑定。不以全局默认容器兜底，避免多应用串用 Bean。
+- `RequestContextHolder` 使用 ContextVar 绑定当前 HTTP Request，请求结束恢复绑定；
+  Service 和 AOP 可获取请求头、查询参数、路径参数及已缓存的请求体，请求外访问明确报错。
+  它同时提供当前响应的状态码、响应头、Cookie 与重定向设置，响应开始后不可再修改。
 - 组件默认递归扫描启动类所在包，允许显式配置范围；`*` 匹配一层，
   `**` 匹配任意层级。支持无 `__init__.py` 的目录，不遍历或导入整个环境中的包。
 - 缺失依赖、重复 Bean 和无法解析的循环依赖必须提供明确异常，不静默降级。
@@ -104,6 +116,18 @@ main.py          本地示例 ASGI 入口
   在依赖注入完成后每实例调用一次，先执行注解回调，再执行显式 init_method。
   同名回调去重，继承回调按基类到子类执行，不进入 AOP 通知链。
 - 框架实现不得依赖 `examples`；示例仅通过公开接口使用框架。
+- 事务抽象集中在 `transaction`，不得依赖 ORM、数据库驱动或 FastAPI；具体 Starter
+  实现 `PlatformTransactionManager` 或 `AsyncPlatformTransactionManager`。
+  `@transactional` 声明元数据，由应用级 AOP 内置的 `TransactionInterceptor` 执行；
+  同步方法解析同步事务管理器，异步方法异步解析并初始化异步事务管理器，
+  可按 `transaction_manager` 指定 Bean 名，否则遵循容器类型及 primary 选择规则。
+  缺失或歧义管理器明确报错；事务通知默认在普通业务通知外层。
+  初始化和销毁方法不增强，Bean 自调用遵循现有代理限制，不自动开启事务。
+  同步与异步管理器分开定义；传播行为和隔离级别不得静默降级。
+  默认异常回滚规则为 `Exception`，更具体规则优先，同等匹配时不回滚规则优先；
+  取消及其他非 `Exception` 的 `BaseException` 必须回滚。
+  加入已有事务的内层作用域不独立提交；内层回滚须标记共享事务 rollback-only，
+  外层尝试提交时抛出 `UnexpectedRollbackError`。资源及上下文由具体管理器负责释放和恢复。
 - `examples` 是使用框架的样例项目，不是框架单元测试目录；启动类继承
   `PythonBootApplication`，仅通过框架公开接口接入。
 - 用户授权验证后，再按变更范围执行相应测试；不得擅自运行。

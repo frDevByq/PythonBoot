@@ -57,6 +57,7 @@ class ApplicationContext:
         self._aop = AopEngine(
             tuple((item.name, item.bean_type) for item in self._definitions.values()),
             lambda bean_type, name: self.get_bean(bean_type, name=name),
+            async_resolver=lambda bean_type, name: self.aget_bean(bean_type, name=name),
         )
 
     def _validate_depends_on(self) -> None:

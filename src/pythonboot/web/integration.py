@@ -8,6 +8,7 @@ from typing import Any, Callable, TypeVar, get_type_hints
 from fastapi import APIRouter, FastAPI, Request
 
 from pythonboot.exceptions import BeanDefinitionError
+from pythonboot.web.datetime import date_time_annotation
 
 T = TypeVar("T")
 
@@ -22,7 +23,9 @@ def inject(
     return dependency
 
 
-def _controller_endpoint(cls: type, method: Callable[..., Any]) -> Callable[..., Any]:
+def _controller_endpoint(
+    cls: type, method: Callable[..., Any], *, date_time_format: str,
+) -> Callable[..., Any]:
     """Hide self and resolve the current application's controller for each request."""
     signature = inspect.signature(method)
     parameters = list(signature.parameters.values())
@@ -38,7 +41,9 @@ def _controller_endpoint(cls: type, method: Callable[..., Any]) -> Callable[...,
     except (NameError, TypeError) as error:
         raise BeanDefinitionError(f"Cannot resolve type hints for controller route {cls.__name__}.{method.__name__}") from error
     parameters = [
-        parameter.replace(annotation=hints.get(parameter.name, parameter.annotation))
+        parameter.replace(annotation=date_time_annotation(
+            hints.get(parameter.name, parameter.annotation), date_time_format,
+        ))
         for parameter in parameters
     ]
     request_name = "_pythonboot_request"
@@ -76,6 +81,7 @@ def _controller_endpoint(cls: type, method: Callable[..., Any]) -> Callable[...,
 
 def register_routers(
     app: FastAPI, modules: tuple[ModuleType, ...], *, exclude: tuple[type, ...] = (),
+    date_time_format: str,
 ) -> None:
     """Automatically register class-based controllers and native APIRouter objects."""
     seen: set[int] = set()
@@ -97,7 +103,7 @@ def register_routers(
                     definitions = getattr(method, "__pythonboot_routes__", ())
                     if not definitions:
                         continue
-                    endpoint = _controller_endpoint(value, method)
+                    endpoint = _controller_endpoint(value, method, date_time_format=date_time_format)
                     for definition in definitions:
                         router.add_api_route(
                             definition.path, endpoint,
