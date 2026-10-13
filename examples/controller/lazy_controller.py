@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from pythonboot import autowired, controller, get, inject
-from tests.config.current_time import CurrentTime, PrototypeTime
+from examples.config.current_time import CurrentTime, PrototypeTime
 
 
 @controller(prefix="/lazy", tags=["lazy"])

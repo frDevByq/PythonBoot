@@ -6,6 +6,11 @@ from pythonboot.aop import (
 )
 from pythonboot.beans import Scope, bean, component, configuration, ondestroy, postconstruct, service
 from pythonboot.boot import PythonBootApplication, create_app, pythonboot_application
+from pythonboot.boot import auto_configuration
+from pythonboot.beans.conditions import (
+    conditional_on_bean, conditional_on_missing_bean,
+    conditional_on_module, conditional_on_property,
+)
 from pythonboot.context import ApplicationContext, autowired
 from pythonboot.config import ConfigurationPropertiesOptions, configuration_properties
 from pythonboot.util import ContextUtil
@@ -13,6 +18,8 @@ from pythonboot.web import controller, delete, get, inject, patch, post, put, ro
 
 __all__ = [
     "PythonBootApplication", "create_app", "pythonboot_application",
+    "auto_configuration", "conditional_on_bean", "conditional_on_missing_bean",
+    "conditional_on_module", "conditional_on_property",
     "ApplicationContext", "bean", "component", "configuration", "service", "inject",
     "controller", "route", "get", "post", "put", "patch", "delete",
     "aspect", "pointcut", "before", "after", "after_returning", "after_throwing", "around",

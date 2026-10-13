@@ -13,8 +13,8 @@ pip install -e .
 uvicorn main:app --reload
 ```
 
-`tests/` 约定为基于框架的样例后端项目，启动类位于
-`tests/test_application.py`，继承 `PythonBootApplication`。
+`examples/` 约定为基于框架的样例后端项目，启动类位于
+`examples/test_application.py`，继承 `PythonBootApplication`。
 启动类默认递归扫描自身所在包：
 
 ```python
@@ -28,7 +28,7 @@ app = TestApplication().app
 ```
 
 `@pythonboot_application()` 同样支持默认扫描。启动类位于
-`tests.test_application` 时，默认扫描 `tests` 及所有子包、模块。
+`examples.test_application` 时，默认扫描 `examples` 及所有子包、模块。
 扫描支持无 `__init__.py` 的目录，启动入口复用当前模块以避免重复创建应用。
 独立脚本没有所属包时，需要显式指定扫描范围。
 
@@ -301,7 +301,7 @@ class OrderService:
 未标记的方法不会匹配这个切点。所有通知装饰器均支持注解切点。
 同一方法可叠加多个注解；同名注解匹配同一切点，建议在单独模块统一定义。
 注解仅标记方法，不改变调用签名，仍通过容器代理执行通知。
-样例在 `tests/config/aop_annotations.py` 定义 `logged`，
+样例在 `examples/annotations/aop_annotations.py` 定义 `logged`，
 `HealthService.health()` 使用 `@logged`，`LoggingAspect` 使用 `@before(logged)`。
 
 ```python
@@ -309,15 +309,15 @@ from pythonboot import ProceedingJoinPoint, around, aspect
 
 @aspect(order=0)
 class ServiceAspect:
-    @around("tests.service.**")
+    @around("examples.service.**")
     def invoke(self, join_point: ProceedingJoinPoint):
         result = join_point.proceed()
         return result
 ```
 
-切点匹配 `模块.类.方法` 全限定名：`tests.service.**` 匹配所有服务方法，
-`tests.service.*.*.health` 匹配指定层级的 health 方法。
-`*` 匹配一层，`**` 匹配任意层级。可复用 `pointcut("tests.service.**")`，
+切点匹配 `模块.类.方法` 全限定名：`examples.service.**` 匹配所有服务方法，
+`examples.service.*.*.health` 匹配指定层级的 health 方法。
+`*` 匹配一层，`**` 匹配任意层级。可复用 `pointcut("examples.service.**")`，
 也可传入 `lambda method: method.bean_name == "healthService"` 等谓词。
 
 通知参数约定：
@@ -349,12 +349,12 @@ async def invoke(self, join_point: ProceedingJoinPoint):
 异常通知观察其内层调用抛出的异常；通知自身抛出的异常也会向外传播。
 切面自身、生命周期方法、私有方法、静态／类方法不增强。
 匹配到生成器方法时明确报错。同一 Bean 内部 `self.method()` 调用不会触发 AOP，
-通过容器注入的其他 Bean 调用会触发。样例切面位于 `tests/config/logging_aspect.py`。
+通过容器注入的其他 Bean 调用会触发。样例切面位于 `examples/config/logging_aspect.py`。
 
 也可以使用启动类启动：
 
 ```bash
-python -m tests.test_application
+python -m examples.test_application
 ```
 
 默认监听 `127.0.0.1:8000`，`run()` 支持设置 `host`、`port` 和 `log_level`。

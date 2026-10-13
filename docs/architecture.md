@@ -2,7 +2,8 @@
 
 PythonBoot 以 FastAPI 为 Web 底座，核心模块与 Web 适配层分离。
 
-创建应用时：确定启动类所在包或显式扫描范围 → 扫描组件和配置工厂 →
+创建应用时：确定启动类所在包或显式扫描范围 → 扫描应用组件和配置工厂 →
+加载 YAML → 发现依赖包自动配置入口并评估条件 →
 注册 Bean 元数据 → 创建应用级容器 → 注册类控制器路由及原生 APIRouter。
 
 ASGI lifespan 启动时：解析构造器依赖 → 创建单例并注册最终 AOP 代理 →
@@ -19,9 +20,23 @@ ASGI lifespan 启动时：解析构造器依赖 → 创建单例并注册最终 
 
 `@pythonboot_application` 与 `PythonBootApplication` 组合使用，
 默认递归扫描启动类所在包，支持 `scan_packages` 覆盖默认范围。
+`@pythonboot_application(exclude=(SomeClass,))` 按类精确排除注册，
+统一作用于组件扫描、自动配置及 Controller 路由；排除配置类同时排除其工厂，
+返回类型为被排除类的工厂也不注册。构造器和 `create_app` 支持相同 `exclude` 参数。
 普通包名递归扫描，`a.*` 匹配一层，`a.**` 匹配任意层级；
 从指定根包路径发现模块，支持无 `__init__.py` 的命名空间目录。
 编排组件扫描、配置 Bean 和 Web 自动注册。工厂 `create_app` 使用显式 `scan_packages`。
+默认启用自动配置，通过 `importlib.metadata` 发现 `pythonboot.autoconfigure` entry points，
+也接受应用扫描模块内的 `@auto_configuration` 类；仅导入声明入口，不扫描整个依赖环境。
+入口支持配置类或包含配置类的模块；按 `order`、类全限定名稳定排序并去重。
+应用定义先注册，再逐个装配自动配置，因此缺失 Bean 条件可让用户实现覆盖默认实现。
+类条件先评估，匹配后导入显式 `imports` 组件并收集工厂；模块和属性不匹配的工厂
+在解析返回类型之前跳过。已有／缺失 Bean 条件只观察用户定义及先前已注册的定义，
+同配置中不依赖 Bean 存在性的定义先注册，需要跨配置条件依赖时使用 `order` 指定顺序。
+条件采用 AND 组合，只作用于自动配置及其导入组件和工厂，不影响普通应用组件扫描。
+入口加载异常保留原因并明确报错；重复 Bean 名继续由容器拒绝。
+可通过 `auto_configure=False` 关闭，或通过 `exclude_auto_configurations` 排除入口／配置类。
+使用示例见 [自动配置](auto-configuration.md)。
 `@component`、`@service` 和 `@configuration` 声明组件，`@bean` 声明同步工厂。
 容器通过类型注解解析依赖，默认单例，每个应用持有独立实例，初始化和销毁方法支持同步与异步。
 属性使用 `dependency: Dependency = autowired()` 声明，可用 `name` 指定 Bean。
@@ -72,8 +87,8 @@ FastAPI 路由，隐藏 `self`，在请求期间从当前应用容器获取控�
 通知使用 `@before(logged)` 或 `@around(logged)`，代理通过方法标记匹配切点。
 注解只添加元数据，保留原始签名及同步／异步类型。
 
-`tests/` 是基于框架的样例后端项目，`test_application.py` 中的
+`examples/` 是基于框架的样例后端项目，`test_application.py` 中的
 `TestApplication` 继承启动类；`main.py` 导出该样例的 ASGI 应用。
 样例按 `controller`、`service`、`config`、`domain`、`schema` 分层，
-`schema` 专门存放数据库模型。启动类默认扫描 `tests` 包，复用当前启动模块，
+`schema` 专门存放数据库模型。启动类默认扫描 `examples` 包，复用当前启动模块，
 避免以 `python -m` 启动时再次导入入口并重复创建应用。

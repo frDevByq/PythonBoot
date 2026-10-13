@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from fnmatch import fnmatchcase
 from pathlib import Path
 from types import ModuleType
-from typing import get_type_hints
+from typing import Callable, get_type_hints
 
 from pythonboot.beans.definitions import BeanDefinition, ComponentOptions
 from pythonboot.exceptions import BeanDefinitionError
@@ -48,6 +48,7 @@ def _module_names(package: ModuleType) -> set[str]:
 
 def scan_components(
     packages: tuple[str, ...], *, exclude_modules: tuple[str, ...] = (),
+    exclude: tuple[type, ...] = (),
 ) -> ScanResult:
     modules: dict[str, ModuleType] = {}
     candidates: set[str] = set()
@@ -83,6 +84,22 @@ def scan_components(
         module = importlib.import_module(name)
         modules[module.__name__] = module
 
+    targets = tuple(
+        value for module in modules.values() for value in vars(module).values()
+        if getattr(value, "__module__", None) == module.__name__
+        and not getattr(value, "__pythonboot_auto_configuration__", None)
+    )
+    return ScanResult(collect_definitions(targets, exclude=exclude), tuple(modules.values()))
+
+
+def collect_definitions(
+    targets: tuple[object, ...], *, include_factory: Callable[[object], bool] | None = None,
+    exclude: tuple[type, ...] = (),
+) -> tuple[BeanDefinition, ...]:
+    """Extract declarations from explicit targets without scanning their packages."""
+    if isinstance(exclude, (str, type)) or any(not isinstance(target, type) for target in exclude):
+        raise TypeError("exclude must be a sequence of classes")
+    excluded_classes = set(exclude)
     definitions: list[BeanDefinition] = []
     seen: set[int] = set()
 
@@ -90,12 +107,16 @@ def scan_components(
         options = getattr(factory, "__pythonboot_bean__", None)
         if options is None:
             return
+        if include_factory is not None and not include_factory(factory):
+            return
         try:
             bean_type = get_type_hints(factory).get("return")
         except (NameError, TypeError) as error:
             raise BeanDefinitionError(f"Cannot resolve type hints for bean factory {factory}") from error
         if not isinstance(bean_type, type) or bean_type is type(None):
             raise BeanDefinitionError(f"Bean factory {factory} must declare a concrete return type")
+        if bean_type in excluded_classes:
+            return
         if inspect.iscoroutinefunction(factory) or inspect.isasyncgenfunction(factory):
             raise BeanDefinitionError("Bean factories must create objects synchronously; use init_method for async initialization")
         definitions.append(BeanDefinition(
@@ -112,31 +133,32 @@ def scan_components(
             depends_on=options.depends_on,
         ))
 
-    for module in modules.values():
-        for value in vars(module).values():
-            if getattr(value, "__module__", None) != module.__name__ or id(value) in seen:
+    for value in targets:
+        if id(value) in seen:
+            continue
+        seen.add(id(value))
+        if inspect.isclass(value):
+            if value in excluded_classes:
                 continue
-            seen.add(id(value))
-            if inspect.isclass(value):
-                options: ComponentOptions | None = vars(value).get("__pythonboot_component__")
-                if options is None:
-                    continue
-                definitions.append(BeanDefinition(
-                    name=options.name or value.__name__[:1].lower() + value.__name__[1:],
-                    bean_type=value,
-                    factory=value,
-                    init_method=options.init_method,
-                    destroy_method=options.destroy_method,
-                    lazy=options.lazy,
-                    scope=options.scope,
-                    primary=options.primary,
-                    qualifiers=options.qualifiers,
-                    depends_on=options.depends_on,
-                ))
-                for method in vars(value).values():
-                    if inspect.isfunction(method):
-                        add_factory(method, owner=value)
-            elif inspect.isfunction(value):
-                add_factory(value)
+            options: ComponentOptions | None = vars(value).get("__pythonboot_component__")
+            if options is None:
+                continue
+            definitions.append(BeanDefinition(
+                name=options.name or value.__name__[:1].lower() + value.__name__[1:],
+                bean_type=value,
+                factory=value,
+                init_method=options.init_method,
+                destroy_method=options.destroy_method,
+                lazy=options.lazy,
+                scope=options.scope,
+                primary=options.primary,
+                qualifiers=options.qualifiers,
+                depends_on=options.depends_on,
+            ))
+            for method in vars(value).values():
+                if inspect.isfunction(method):
+                    add_factory(method, owner=value)
+        elif inspect.isfunction(value):
+            add_factory(value)
 
-    return ScanResult(tuple(definitions), tuple(modules.values()))
+    return tuple(definitions)

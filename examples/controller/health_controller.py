@@ -1,8 +1,8 @@
 """健康检查接口。"""
 
 from pythonboot import autowired, controller, get
-from tests.domain.health import Health
-from tests.service.health_service import HealthService
+from examples.domain.health import Health
+from examples.service.health_service import HealthService
 
 @controller(prefix="/health",tags=["health"])
 class HealthController:

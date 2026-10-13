@@ -13,7 +13,7 @@
 构建基于 FastAPI 的 Python 后端框架，提供 Bean 扫描、依赖注入、
 容器生命周期管理和 AOP，并保持 FastAPI 原生路由及依赖机制可用。
 已提供启动组合装饰器、Bean 扫描、单例／多例容器、构造器及属性注入、生命周期管理
-以及基于应用级 Bean 代理的 AOP。
+以及基于应用级 Bean 代理的 AOP、依赖包入口发现与条件自动配置。
 
 ## 依赖清单
 本项目使用UV 管理依赖
@@ -48,8 +48,7 @@ src/pythonboot/
   config/        配置模型、配置源和属性绑定
   exceptions/    框架异常
   util/          容器上下文等公共工具
-examples/demo/   最小使用示例，按控制器与服务分层
-tests/           基于 PythonBoot 框架的样例后端项目
+examples/        基于 PythonBoot 框架的样例后端项目
   controller/    HTTP 控制器及原生 FastAPI 路由
   service/       业务服务
   config/        应用配置与配置 Bean
@@ -67,7 +66,7 @@ main.py          本地示例 ASGI 入口
   Service 必须使用类并标记 `@service`，通过构造器或 `autowired()` 属性注入依赖。
 - 使用绝对包导入及类型注解；需要包级公共接口时通过 `__init__.py` 显式导出。
 - 非必要不创建 `__init__.py`；仅用于公共接口导出、必要的包解析或实际初始化逻辑，
-  不为目录标记或说明文字创建。`tests/__init__.py` 保留以避免同名第三方包遮蔽样例项目。
+  不为目录标记或说明文字创建。`examples/__init__.py` 保留以避免同名第三方包遮蔽样例项目。
 - `beans` 负责声明和发现，`context` 负责实例化和依赖解析，避免互相循环引用。
 - `beans`、`context`、`aop` 不依赖 FastAPI；Web 集成集中在 `web`，启动编排放在 `boot`。
 - 容器属于应用实例，禁止使用全局可变容器保存所有应用的 Bean。
@@ -96,10 +95,15 @@ main.py          本地示例 ASGI 入口
 - 支持通过 `annotation(name)` 定义业务方法注解，方法使用 `@logged` 等注解，
   通知使用 `@before(logged)` 等声明注解切点；公共注解集中定义并复用。
 - 资源初始化和销毁接入 ASGI lifespan，禁止导入模块时启动服务或创建外部连接。
+- 自动配置通过 `pythonboot.autoconfigure` entry points 发现，入口为
+  `@auto_configuration` 类或包含这些类的模块，不扫描第三方依赖包全目录。
+  应用 Bean 优先注册；自动配置及其工厂支持模块、YAML 属性、已有／缺失 Bean 条件。
+  条件只在自动配置装配时评估，不实例化 Bean；配置按 `order` 从小到大装配。
+  默认 Bean 使用 `@conditional_on_missing_bean` 明确退让，重复 Bean 仍报错。
 - 初始化回调可使用 `@postconstruct`，只接收 self，支持同步和异步；
   在依赖注入完成后每实例调用一次，先执行注解回调，再执行显式 init_method。
   同名回调去重，继承回调按基类到子类执行，不进入 AOP 通知链。
 - 框架实现不得依赖 `examples`；示例仅通过公开接口使用框架。
-- `tests` 是使用框架的样例项目，不是框架单元测试目录；启动类继承
+- `examples` 是使用框架的样例项目，不是框架单元测试目录；启动类继承
   `PythonBootApplication`，仅通过框架公开接口接入。
 - 用户授权验证后，再按变更范围执行相应测试；不得擅自运行。

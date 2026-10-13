@@ -3,7 +3,7 @@
 import logging
 
 from pythonboot import JoinPoint, after_throwing, aspect, before
-from tests.config.aop_annotations import logged
+from examples.annotations.aop_annotations import logged
 
 logger = logging.getLogger(__name__)
 

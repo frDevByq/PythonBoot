@@ -74,7 +74,9 @@ def _controller_endpoint(cls: type, method: Callable[..., Any]) -> Callable[...,
     return endpoint
 
 
-def register_routers(app: FastAPI, modules: tuple[ModuleType, ...]) -> None:
+def register_routers(
+    app: FastAPI, modules: tuple[ModuleType, ...], *, exclude: tuple[type, ...] = (),
+) -> None:
     """Automatically register class-based controllers and native APIRouter objects."""
     seen: set[int] = set()
     for module in modules:
@@ -84,6 +86,7 @@ def register_routers(app: FastAPI, modules: tuple[ModuleType, ...]) -> None:
                 app.include_router(value)
             elif (
                 inspect.isclass(value)
+                and value not in exclude
                 and value.__module__ == module.__name__
                 and "__pythonboot_controller__" in vars(value)
                 and id(value) not in seen

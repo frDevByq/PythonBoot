@@ -10,6 +10,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from pythonboot.beans import scan_components
+from pythonboot.boot.autoconfiguration import assemble_auto_configurations
 from pythonboot.context import ApplicationContext
 from pythonboot.config import load_configuration
 from pythonboot.util import ContextUtil
@@ -20,14 +21,27 @@ def create_app(
     *, title: str = "PythonBoot", version: str = "0.1.0",
     scan_packages: tuple[str, ...] = (),
     exclude_modules: tuple[str, ...] = (), config_dir: str | Path | None = None,
+    auto_configure: bool = True, exclude_auto_configurations: tuple[str, ...] = (),
+    exclude: tuple[type, ...] = (),
     **options: Any,
 ) -> FastAPI:
     """Create an independent application instance."""
     if isinstance(scan_packages, str):
         raise ValueError("scan_packages must be a sequence of package names, not a string")
-    result = scan_components(tuple(scan_packages), exclude_modules=exclude_modules)
+    if isinstance(exclude, (str, type)) or any(not isinstance(target, type) for target in exclude):
+        raise TypeError("exclude must be a sequence of classes")
+    excluded_classes = tuple(exclude)
+    result = scan_components(
+        tuple(scan_packages), exclude_modules=exclude_modules, exclude=excluded_classes,
+    )
     configuration = load_configuration(config_dir) if config_dir is not None else {}
-    context = ApplicationContext(result.definitions, configuration=configuration)
+    definitions = result.definitions
+    if auto_configure:
+        definitions = assemble_auto_configurations(
+            definitions, result.modules, configuration, exclude=exclude_auto_configurations,
+            exclude_classes=excluded_classes,
+        )
+    context = ApplicationContext(definitions, configuration=configuration)
     app = FastAPI(title=title, version=version, **options)
     app.state.context = context
     native_lifespan = app.router.lifespan_context
@@ -44,7 +58,7 @@ def create_app(
 
     app.router.lifespan_context = lifespan
     app.add_middleware(ApplicationContextMiddleware, context=context)
-    register_routers(app, result.modules)
+    register_routers(app, result.modules, exclude=excluded_classes)
     return app
 
 
@@ -58,6 +72,9 @@ class PythonBootApplication:
         version: str = "0.1.0",
         scan_packages: tuple[str, ...] | None = None,
         config_dir: str | Path | None = None,
+        auto_configure: bool = True,
+        exclude_auto_configurations: tuple[str, ...] | None = None,
+        exclude: tuple[type, ...] | None = None,
         **options: Any,
     ) -> None:
         packages = (
@@ -78,7 +95,16 @@ class PythonBootApplication:
                 packages = (package_name,)
         self.app: FastAPI = create_app(
             title=title, version=version, scan_packages=packages,
-            exclude_modules=(module_name,), config_dir=config_dir, **options
+            exclude_modules=(module_name,), config_dir=config_dir,
+            auto_configure=auto_configure,
+            exclude_auto_configurations=(
+                exclude_auto_configurations if exclude_auto_configurations is not None
+                else getattr(type(self), "__pythonboot_exclude_auto_configurations__", ())
+            ),
+            exclude=(
+                exclude if exclude is not None else getattr(type(self), "__pythonboot_exclude__", ())
+            ),
+            **options,
         )
         self.context: ApplicationContext = self.app.state.context
         self.configure(self.app)

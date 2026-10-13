@@ -1,4 +1,4 @@
-"""样例项目启动类：python -m tests.test_application。"""
+"""样例项目启动类：python -m examples.test_application。"""
 
 from pathlib import Path
 
