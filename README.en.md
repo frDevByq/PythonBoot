@@ -114,7 +114,7 @@ def report(
 Use `@controller` for controller classes and inject services through constructors. Route methods use `@get`, `@post`, `@put`, `@patch`, `@delete`, or `@route`:
 
 ```python
-from pythonboot import controller, get, service
+from pythonboot import autowired, controller, get, service
 
 
 @service
@@ -125,8 +125,7 @@ class HealthService:
 
 @controller(prefix="/health", tags=["health"])
 class HealthController:
-    def __init__(self, health_service: HealthService) -> None:
-        self.health_service = health_service
+    health_service: HealthService = autowired()
 
     @get("")
     def health(self) -> dict[str, str]:

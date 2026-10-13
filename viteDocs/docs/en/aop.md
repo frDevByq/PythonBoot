@@ -25,8 +25,16 @@ class PaymentService:
 Async advice cannot target synchronous methods. Signatures and metadata are preserved. Aspects, lifecycle methods, and self-invocations are not advised; proxies do not mutate global classes.
 
 ```java
-@Aspect @Component @Order(10) class LoggingAspect {
-  @Before("@annotation(Logged)") void before(JoinPoint p) {}
-  @Around("execution(* myapp.service..*(..))") Object around(ProceedingJoinPoint p) throws Throwable { return p.proceed(); }
+@Aspect
+@Component
+@Order(10)
+class LoggingAspect {
+    @Before("@annotation(Logged)")
+    void before(JoinPoint joinPoint) {}
+
+    @Around("execution(* myapp.service..*(..))")
+    Object around(ProceedingJoinPoint joinPoint) throws Throwable {
+        return joinPoint.proceed();
+    }
 }
 ```

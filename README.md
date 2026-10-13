@@ -132,7 +132,7 @@ application = Application(config_dir="./config")
 方法使用 `@get`、`@post`、`@put`、`@patch`、`@delete` 或 `@route` 声明路由。
 
 ```python
-from pythonboot import controller, get, service
+from pythonboot import autowired, controller, get, service
 
 @service
 class HealthService:
@@ -141,8 +141,7 @@ class HealthService:
 
 @controller(prefix="/health", tags=["health"])
 class HealthController:
-    def __init__(self, health_service: HealthService) -> None:
-        self.health_service = health_service
+    health_service: HealthService = autowired()
 
     @get("")
     def health(self) -> dict[str, str]:

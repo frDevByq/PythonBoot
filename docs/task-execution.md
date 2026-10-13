@@ -11,13 +11,12 @@
 ```python
 from concurrent.futures import Future
 
-from pythonboot import TaskExecutor, service
+from pythonboot import TaskExecutor, autowired, service
 
 
 @service
 class ExportService:
-    def __init__(self, executor: TaskExecutor) -> None:
-        self.executor = executor
+    executor: TaskExecutor = autowired()
 
     def export(self, document_id: int) -> Future[str]:
         return self.executor.submit(self.build_file, document_id)

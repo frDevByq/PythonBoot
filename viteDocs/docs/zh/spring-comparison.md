@@ -9,7 +9,7 @@ from typing import Annotated
 from fastapi import Body
 from pydantic import BaseModel
 from pythonboot import (
-    PythonBootApplication, pythonboot_application, controller, get, post,
+    PythonBootApplication, pythonboot_application, autowired, controller, get, post,
     service, transactional, RequestContextHolder,
 )
 
@@ -28,8 +28,7 @@ class OrderService:
 
 @controller(prefix="/orders", tags=["订单"])
 class OrderController:
-    def __init__(self, service: OrderService) -> None:
-        self.service = service
+    service: OrderService = autowired()
 
     @get("/{order_id}", summary="查询订单")
     def find(self, order_id: int) -> dict:
@@ -50,25 +49,44 @@ app = Application(config_dir="config").app
 
 ```java
 @SpringBootApplication
-public class Application { public static void main(String[] args) {
-  SpringApplication.run(Application.class, args);
-}}
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
 
 record OrderCreate(String sku) {}
 
 @Service
 class OrderService {
-  @Transactional(transactionManager = "transactionManager")
-  Map<String, Object> create(OrderCreate command) { return Map.of("id", 1, "sku", command.sku()); }
-  Map<String, Object> find(long id) { return Map.of("id", id); }
+    @Transactional(transactionManager = "transactionManager")
+    Map<String, Object> create(OrderCreate command) {
+        return Map.of("id", 1, "sku", command.sku());
+    }
+
+    Map<String, Object> find(long id) {
+        return Map.of("id", id);
+    }
 }
 
-@RestController @RequestMapping("/orders")
+@RestController
+@RequestMapping("/orders")
 class OrderController {
-  private final OrderService service;
-  OrderController(OrderService service) { this.service = service; }
-  @GetMapping("/{id}") Map<String, Object> find(@PathVariable long id) { return service.find(id); }
-  @PostMapping Map<String, Object> create(@RequestBody OrderCreate body) { return service.create(body); }
+    private final OrderService service;
+
+    OrderController(OrderService service) {
+        this.service = service;
+    }
+
+    @GetMapping("/{id}")
+    Map<String, Object> find(@PathVariable long id) {
+        return service.find(id);
+    }
+
+    @PostMapping
+    Map<String, Object> create(@RequestBody OrderCreate body) {
+        return service.create(body);
+    }
 }
 ```
 

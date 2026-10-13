@@ -14,8 +14,11 @@ pythonboot:
 ```
 
 ```python
+from pythonboot import TaskExecutor, autowired, service
+
+@service
 class ReportService:
-    def __init__(self, executor: TaskExecutor): self.executor = executor
+    executor: TaskExecutor = autowired()
     async def generate(self): return await self.executor.asubmit(build_report)
 ```
 
@@ -24,5 +27,11 @@ class ReportService:
 `ThreadPoolTaskExecutor` takes `core_pool_size=8`, `max_pool_size=32`, `queue_capacity=256` (`None` is unbounded, `0` is handoff-only), `keep_alive_seconds=60`, `thread_name_prefix="pythonboot-task-"`, `allow_core_thread_timeout=False`, `rejection_policy=ABORT`, `wait_for_tasks_to_complete_on_shutdown=True`, `await_termination_seconds=None`, and `task_decorator=None`. Rejection policies are `abort`, `caller_runs`, `discard`, and `discard_oldest`.
 
 ```java
-@Bean ThreadPoolTaskExecutor applicationTaskExecutor() { var e = new ThreadPoolTaskExecutor(); e.setCorePoolSize(8); e.initialize(); return e; }
+@Bean
+ThreadPoolTaskExecutor applicationTaskExecutor() {
+    var executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(8);
+    executor.initialize();
+    return executor;
+}
 ```

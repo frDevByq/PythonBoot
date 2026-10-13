@@ -20,20 +20,34 @@ class Infra:
 @service
 class NoticeService:
     mail: MailService = autowired(qualifier="notification")
-    def __init__(self, clock: Clock): self.clock = clock
+    clock: Clock = autowired()
 ```
 
 All component declarations take `name=None`, `init_method=None`, `destroy_method=None`, `lazy=False`, `scope="singleton"`, `primary=False`, `qualifiers=()`, and `depends_on=()`. A singleton is application-cached; a prototype is created per lookup, is not eagerly created, and is not automatically destroyed.
 
-Constructor arguments require type annotations. Candidates are filtered by name/qualifier, then a unique primary is selected. Use `Annotated[Type, autowired(name="...")]` for constructor metadata. Attribute injection requires both a type and `autowired(name=None, required=True, lazy=False, qualifier=None)`. Missing optional attributes become `None`; lazy attributes resolve on first access. Lazy constructor injection is unsupported. Attribute cycles can resolve; constructor and prototype cycles fail.
+`autowired()` attribute injection is recommended. Constructor arguments require type annotations and remain supported for compatibility. Candidates are filtered by name/qualifier, then a unique primary is selected. Use `Annotated[Type, autowired(name="...")]` for constructor metadata. Attribute injection requires both a type and `autowired(name=None, required=True, lazy=False, qualifier=None)`. Missing optional attributes become `None`; lazy attributes resolve on first access. Lazy constructor injection is unsupported. Attribute cycles can resolve; constructor and prototype cycles fail.
 
 `@postconstruct` and `@ondestroy` accept instance methods with only `self`. Postconstruct callbacks run base-to-derived before `init_method`; destroy callbacks run in reverse creation order and derived-to-base. Lifecycle methods are never advised.
 
 `ApplicationContext.get_bean` / `aget_bean` take a class or name plus `name=None` and `qualifier=None`. `ContextUtil.use(context)` binds a container for standalone work.
 
 ```java
-@Service("mailService") @Primary @Qualifier("notification") class MailService {
-  @PostConstruct void connect() {} @PreDestroy void disconnect() {}
+@Service("mailService")
+@Primary
+@Qualifier("notification")
+class MailService {
+    @PostConstruct
+    void connect() {}
+
+    @PreDestroy
+    void disconnect() {}
 }
-@Configuration class Infra { @Bean Clock clock() { return Clock.systemUTC(); } }
+
+@Configuration
+class Infra {
+    @Bean
+    Clock clock() {
+        return Clock.systemUTC();
+    }
+}
 ```

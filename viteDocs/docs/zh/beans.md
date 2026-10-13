@@ -25,9 +25,7 @@ class InfraConfiguration:
 @service
 class NoticeService:
     mail: MailService = autowired(qualifier="notification")
-
-    def __init__(self, clock: Clock) -> None:
-        self.clock = clock
+    clock: Clock = autowired()
 ```
 
 全部组件装饰器的候选参数相同：
@@ -46,7 +44,7 @@ class NoticeService:
 
 ## 构造器、属性与候选解析
 
-构造器参数必须有类型注解。多候选时先按 `qualifier` / `name` 过滤，再选择唯一 `primary`，否则报歧义。参数可用 `Annotated` 指定注入元数据：
+框架推荐通过 `autowired()` 属性注入。构造器参数必须有类型注解，仍可作为兼容写法使用；多候选时先按 `qualifier` / `name` 过滤，再选择唯一 `primary`，否则报歧义。参数可用 `Annotated` 指定注入元数据：
 
 ```python
 from typing import Annotated
@@ -75,17 +73,35 @@ service = await ContextUtil.aget_bean(NoticeService)
 ## Spring Boot 对照
 
 ```java
-@Service("mailService") @Primary @Qualifier("notification")
+@Service("mailService")
+@Primary
+@Qualifier("notification")
 class MailService {
-  @PostConstruct void connect() {}
-  @PreDestroy void disconnect() {}
+    @PostConstruct
+    void connect() {}
+
+    @PreDestroy
+    void disconnect() {}
 }
+
 @Service
 class NoticeService {
-  private final Clock clock;
-  @Autowired @Qualifier("notification") MailService mail;
-  NoticeService(Clock clock) { this.clock = clock; }
+    private final Clock clock;
+
+    @Autowired
+    @Qualifier("notification")
+    MailService mail;
+
+    NoticeService(Clock clock) {
+        this.clock = clock;
+    }
 }
+
 @Configuration
-class InfraConfiguration { @Bean Clock clock() { return Clock.systemUTC(); } }
+class InfraConfiguration {
+    @Bean
+    Clock clock() {
+        return Clock.systemUTC();
+    }
+}
 ```

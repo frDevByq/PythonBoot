@@ -6,12 +6,11 @@
 from datetime import datetime
 from typing import Annotated
 from fastapi import Body, Depends, Query
-from pythonboot import controller, get, post, inject, date_time
+from pythonboot import autowired, controller, get, post, inject, date_time
 
 @controller(prefix="/orders", tags=["订单"], dependencies=[])
 class OrderController:
-    def __init__(self, service: OrderService) -> None:
-        self.service = service
+    service: OrderService = autowired()
 
     @get("/{order_id}", summary="查询订单", response_model=OrderResponse)
     async def detail(self, order_id: int, at: Annotated[datetime, date_time("%Y/%m/%d"), Query()]):
@@ -54,12 +53,21 @@ YAML 的 `pythonboot.web.datetime_format` 控制所有 Controller `datetime` 参
 ## Spring Boot 对照
 
 ```java
-@RestController @RequestMapping("/orders") @Tag(name = "订单")
+@RestController
+@RequestMapping("/orders")
+@Tag(name = "订单")
 class OrderController {
-  @GetMapping("/{id}") OrderResponse detail(@PathVariable long id) { ... }
+    @GetMapping("/{id}")
+    OrderResponse detail(@PathVariable long id) {
+        // ...
+    }
 }
+
 @RestControllerAdvice
 class ErrorAdvice {
-  @ExceptionHandler(OrderNotFound.class) Object missing(OrderNotFound ex) { ... }
+    @ExceptionHandler(OrderNotFound.class)
+    Object missing(OrderNotFound ex) {
+        // ...
+    }
 }
 ```

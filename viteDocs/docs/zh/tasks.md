@@ -14,11 +14,11 @@ pythonboot:
 ```
 
 ```python
-from pythonboot import TaskExecutor
+from pythonboot import TaskExecutor, autowired, service
 
+@service
 class ReportService:
-    def __init__(self, executor: TaskExecutor) -> None:
-        self.executor = executor
+    executor: TaskExecutor = autowired()
 
     async def generate(self) -> Report:
         return await self.executor.asubmit(build_report)

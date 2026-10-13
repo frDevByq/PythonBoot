@@ -35,6 +35,10 @@ class CacheAutoConfiguration:
 Conditions run only during assembly and never create beans. YAML also configures `pythonboot.logging` and `pythonboot.docs` (`enabled`, `provider`: `scalar`/`swagger`/`redoc`, `path`, `openapi_path`).
 
 ```java
-@ConfigurationProperties(prefix = "payments.stripe") class StripeProperties {}
-@AutoConfiguration @ConditionalOnProperty(name="cache.enabled", havingValue="true") class CacheAutoConfiguration {}
+@ConfigurationProperties(prefix = "payments.stripe")
+class StripeProperties {}
+
+@AutoConfiguration
+@ConditionalOnProperty(name = "cache.enabled", havingValue = "true")
+class CacheAutoConfiguration {}
 ```

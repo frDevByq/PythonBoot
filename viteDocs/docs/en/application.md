@@ -40,6 +40,13 @@ app = create_app(title="Inventory API", version="1.0.0", scan_packages=("invento
 ## Spring Boot equivalent
 
 ```java
-@SpringBootApplication(scanBasePackages = "myapp", exclude = LegacyAutoConfiguration.class)
-class Application { public static void main(String[] args) { SpringApplication.run(Application.class, args); } }
+@SpringBootApplication(
+    scanBasePackages = "myapp",
+    exclude = LegacyAutoConfiguration.class
+)
+class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
 ```

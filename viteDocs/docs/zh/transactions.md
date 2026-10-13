@@ -34,9 +34,15 @@ Starter 应实现同步或异步管理器接口的 `get_transaction(definition=N
 ## Spring Boot 对照
 
 ```java
-@Transactional(propagation = Propagation.REQUIRED,
-  isolation = Isolation.READ_COMMITTED, timeout = 30,
-  rollbackFor = BusinessError.class, noRollbackFor = ValidationError.class,
-  transactionManager = "databaseTransactionManager")
-public Order create(CreateOrder command) { ... }
+@Transactional(
+    propagation = Propagation.REQUIRED,
+    isolation = Isolation.READ_COMMITTED,
+    timeout = 30,
+    rollbackFor = BusinessError.class,
+    noRollbackFor = ValidationError.class,
+    transactionManager = "databaseTransactionManager"
+)
+public Order create(CreateOrder command) {
+    // ...
+}
 ```

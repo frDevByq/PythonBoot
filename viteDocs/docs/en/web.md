@@ -4,11 +4,11 @@
 from datetime import datetime
 from typing import Annotated
 from fastapi import Body, Query
-from pythonboot import controller, get, post, date_time
+from pythonboot import autowired, controller, get, post, date_time
 
 @controller(prefix="/orders", tags=["Orders"], dependencies=[])
 class OrderController:
-    def __init__(self, service: OrderService): self.service = service
+    service: OrderService = autowired()
 
     @get("/{order_id}", summary="Get order", response_model=OrderResponse)
     async def detail(self, order_id: int, at: Annotated[datetime, date_time("%Y/%m/%d"), Query()]):
@@ -32,6 +32,15 @@ class ErrorAdvice:
 `RequestContextHolder` exposes `get_request()`, `get_response()`, `putData(key, value)`, and `getData(key, default=None)`. The response context provides `status_code`, `set_header`, `set_cookie(key, value, **options)`, and `redirect(url, status_code=307)` before response start. `pythonboot.web.datetime_format` sets default request/JSON response formatting; `date_time(format)` overrides it through `Annotated` metadata.
 
 ```java
-@RestController @RequestMapping("/orders") class OrderController {}
-@RestControllerAdvice class ErrorAdvice { @ExceptionHandler(OrderNotFound.class) Object missing() { return null; } }
+@RestController
+@RequestMapping("/orders")
+class OrderController {}
+
+@RestControllerAdvice
+class ErrorAdvice {
+    @ExceptionHandler(OrderNotFound.class)
+    Object missing() {
+        return null;
+    }
+}
 ```

@@ -6,7 +6,7 @@
 from fastapi import Body
 from pydantic import BaseModel
 from typing import Annotated
-from pythonboot import PythonBootApplication, pythonboot_application, controller, get, post, service, transactional
+from pythonboot import PythonBootApplication, pythonboot_application, autowired, controller, get, post, service, transactional
 
 class OrderCreate(BaseModel): sku: str
 @service
@@ -16,7 +16,7 @@ class OrderService:
     def find(self, order_id: int): return {"id": order_id}
 @controller(prefix="/orders", tags=["Orders"])
 class OrderController:
-    def __init__(self, service: OrderService): self.service = service
+    service: OrderService = autowired()
     @get("/{order_id}")
     def find(self, order_id: int): return self.service.find(order_id)
     @post("")
@@ -27,9 +27,29 @@ app = Application(config_dir="config").app
 ```
 
 ```java
-@SpringBootApplication class Application { public static void main(String[] a) { SpringApplication.run(Application.class, a); } }
-@Service class OrderService { @Transactional Map create(OrderCreate c) { return Map.of(); } }
-@RestController @RequestMapping("/orders") class OrderController { @GetMapping("/{id}") Map find(@PathVariable long id) { return Map.of(); } }
+@SpringBootApplication
+class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+
+@Service
+class OrderService {
+    @Transactional
+    Map<String, Object> create(OrderCreate command) {
+        return Map.of();
+    }
+}
+
+@RestController
+@RequestMapping("/orders")
+class OrderController {
+    @GetMapping("/{id}")
+    Map<String, Object> find(@PathVariable long id) {
+        return Map.of();
+    }
+}
 ```
 
 | Spring Boot | PythonBoot |

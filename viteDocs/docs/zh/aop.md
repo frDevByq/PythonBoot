@@ -43,11 +43,16 @@ def only_queries(method):
 ## Spring Boot 对照
 
 ```java
-@Aspect @Component @Order(10)
+@Aspect
+@Component
+@Order(10)
 class LoggingAspect {
-  @Before("@annotation(Logged)") void before(JoinPoint joinPoint) {}
-  @Around("execution(* myapp.service..*(..))") Object around(ProceedingJoinPoint p) throws Throwable {
-    return p.proceed();
-  }
+    @Before("@annotation(Logged)")
+    void before(JoinPoint joinPoint) {}
+
+    @Around("execution(* myapp.service..*(..))")
+    Object around(ProceedingJoinPoint joinPoint) throws Throwable {
+        return joinPoint.proceed();
+    }
 }
 ```

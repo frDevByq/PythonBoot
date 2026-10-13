@@ -17,7 +17,14 @@ Parameters: `propagation=REQUIRED` (`REQUIRED`, `SUPPORTS`, `MANDATORY`, `REQUIR
 The closest rollback rule wins; a tie goes to no-rollback. Non-`Exception` `BaseException` values always roll back. Participating inner scopes do not commit independently; rollback marks the shared transaction rollback-only and the outer commit raises `UnexpectedRollbackError`. `NESTED` requires savepoint support. Starters implement `get_transaction(definition=None)`, `commit(status)`, and `rollback(status)` on the sync or async manager contract.
 
 ```java
-@Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED,
-  timeout = 30, rollbackFor = BusinessError.class, transactionManager = "databaseTransactionManager")
-Order create(CreateOrder command) { ... }
+@Transactional(
+    propagation = Propagation.REQUIRED,
+    isolation = Isolation.READ_COMMITTED,
+    timeout = 30,
+    rollbackFor = BusinessError.class,
+    transactionManager = "databaseTransactionManager"
+)
+Order create(CreateOrder command) {
+    // ...
+}
 ```

@@ -58,11 +58,17 @@ class CacheAutoConfiguration:
 
 ```java
 @ConfigurationProperties(prefix = "payments.stripe")
-public class StripeProperties { private String apiKey; }
+public class StripeProperties {
+    private String apiKey;
+}
 
-@AutoConfiguration(afterName = "...")
+@AutoConfiguration
 @ConditionalOnProperty(name = "cache.enabled", havingValue = "true")
 class CacheAutoConfiguration {
-  @Bean @ConditionalOnMissingBean Cache cache(CacheProperties p) { return new MemoryCache(p.getSize()); }
+    @Bean
+    @ConditionalOnMissingBean
+    Cache cache(CacheProperties properties) {
+        return new MemoryCache(properties.getSize());
+    }
 }
 ```
