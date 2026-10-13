@@ -1,5 +1,7 @@
 # PythonBoot
 
+[English](README.en.md) | 中文
+
 基于 FastAPI、借鉴 Spring Boot 的 Python 后端框架。
 提供启动组合装饰器、Bean 扫描、单例／多例 IoC 容器、构造器及属性注入、生命周期管理和 AOP。
 

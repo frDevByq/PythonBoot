@@ -1,5 +1,7 @@
 # 架构
 
+[English](architecture.en.md) | 中文
+
 PythonBoot 以 FastAPI 为 Web 底座，核心模块与 Web 适配层分离。
 
 创建应用时：确定启动类所在包或显式扫描范围 → 扫描应用组件和配置工厂 →

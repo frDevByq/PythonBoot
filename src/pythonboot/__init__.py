@@ -14,6 +14,7 @@ from pythonboot.beans.conditions import (
 from pythonboot.context import ApplicationContext, autowired
 from pythonboot.config import ConfigurationPropertiesOptions, configuration_properties
 from pythonboot.util import ContextUtil
+from pythonboot.task import RejectionPolicy, TaskExecutor, TaskRejectedError, ThreadPoolTaskExecutor
 from pythonboot.transaction import (
     AsyncPlatformTransactionManager, AsyncSavepointManager, Isolation,
     PlatformTransactionManager, Propagation, SavepointManager,
@@ -38,6 +39,7 @@ __all__ = [
     "autowired",
     "Scope",
     "ContextUtil",
+    "TaskExecutor", "ThreadPoolTaskExecutor", "TaskRejectedError", "RejectionPolicy",
     "RequestContextHolder",
     "postconstruct", "ondestroy",
     "configuration_properties", "ConfigurationPropertiesOptions",

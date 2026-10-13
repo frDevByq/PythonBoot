@@ -65,6 +65,9 @@ def assemble_auto_configurations(
         if name not in exclude and target not in excluded_classes:
             candidates[name] = target
 
+    from pythonboot.boot.task_configuration import TaskExecutionAutoConfiguration
+
+    add(TaskExecutionAutoConfiguration)
     for module in modules:
         add(module)
     for entry in sorted(entry_points(group="pythonboot.autoconfigure"), key=lambda item: (item.name, item.value)):

@@ -45,6 +45,7 @@ src/pythonboot/
   context/       IoC 容器、依赖解析、作用域和生命周期
   aop/           切面、切点、通知及代理
   transaction/   事务定义、管理器接口、状态及声明式事务元数据
+  task/          任务执行器、线程池调度、拒绝策略和关闭管理
   web/           FastAPI 路由、依赖桥接及异常处理适配
   config/        配置模型、配置源和属性绑定
   exceptions/    框架异常

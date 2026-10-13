@@ -1,5 +1,7 @@
 # 事务接口
 
+[English](transactions.en.md) | 中文
+
 `pythonboot.transaction` 提供与数据库无关的 Spring 风格事务契约。
 框架内置应用级 `TransactionInterceptor`，自动增强容器 Bean 上的事务方法。
 数据库 Starter 或应用需要提供具体事务管理器 Bean，框架不创建数据库连接。

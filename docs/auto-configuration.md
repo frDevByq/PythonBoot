@@ -1,5 +1,7 @@
 # 自动配置
 
+[English](auto-configuration.en.md) | 中文
+
 应用安装声明了自动配置入口的 starter 后，PythonBoot 默认发现并装配其 Bean，
 无需把第三方包加入 `scan_packages`。普通数据库驱动本身没有入口，仍需对应 starter。
 自动配置在创建应用时注册定义，连接池等资源在 ASGI lifespan 启动时初始化，关闭时释放。
