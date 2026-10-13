@@ -5,7 +5,7 @@ PythonBoot is a FastAPI-based backend framework with a Spring Boot-inspired prog
 ## Minimal application
 
 ```python
-from pythonboot import PythonBootApplication, pythonboot_application
+from pythonboot_web import PythonBootApplication, pythonboot_application
 
 @pythonboot_application
 class Application(PythonBootApplication):
@@ -16,9 +16,12 @@ app = Application().app
 
 The application class package is scanned recursively by default. The container starts and stops in ASGI lifespan.
 
-- Python >= 3.12; FastAPI, Pydantic, pydantic-settings, PyYAML and wrapt are runtime dependencies.
+- Python >= 3.12; the core depends on Pydantic, pydantic-settings, PyYAML, and wrapt. The Web Starter adds FastAPI and Uvicorn.
 - Controllers are classes marked with `@controller`; FastAPI parameters, dependencies and response models remain native.
 - Every bean belongs to an application instance. A bean cannot be obtained from an inactive container.
 - `application.yml` and profile-specific YAML files supply configuration.
 
 Continue with [Application and scanning](/en/application), or read the [PythonBoot / Spring Boot comparison](/en/spring-comparison).
+
+Install Web applications with `uv add pythonboot-starter-web`. See
+[Web Starter and implementation package](/en/web-starter) for package boundaries and import migration.

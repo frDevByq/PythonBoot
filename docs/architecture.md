@@ -16,9 +16,13 @@ ASGI lifespan 启动时：解析构造器依赖 → 创建单例并注册最终 
 - `context`：管理 Bean 实例、依赖关系、作用域和销毁流程。
 - `aop`：对匹配的 Bean 方法应用通知和代理。
 - `config`：读取配置并绑定属性。
-- `web`：将容器能力接入 FastAPI。
-- `boot`：编排上述模块，提供 `create_app` 和 `PythonBootApplication` 启动类。
+- 独立包 `pythonboot_web`：将容器能力接入 FastAPI，提供 `create_app`、`PythonBootApplication`
+  和 `pythonboot_application`，实现位于 `PythonBootStarter/modules/pythonboot-web`。
+- 核心 `boot`：编排自动配置；不依赖 FastAPI 或 Web 实现。
 - `util`：提供 `ContextUtil`，获取当前容器以及按名称或类型获取 Bean。
+
+Web 应用安装 `pythonboot-starter-web`，通过依赖链引入 `pythonboot-web` 和 `pythonboot`。
+核心和 Web 分别使用 `pythonboot`、`pythonboot_web` 导入；核心保留在当前仓库。
 
 `@pythonboot_application` 与 `PythonBootApplication` 组合使用，
 默认递归扫描启动类所在包，支持 `scan_packages` 覆盖默认范围。

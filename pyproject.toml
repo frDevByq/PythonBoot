@@ -5,12 +5,10 @@ build-backend = "hatchling.build"
 [project]
 name = "pythonboot"
 version = "0.1.0"
-description = "A Spring Boot-inspired backend framework built on FastAPI"
+description = "A Spring Boot-inspired Python application core with IoC, AOP, and lifecycle management"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.115,<1",
-    "uvicorn[standard]>=0.34,<1",
     "pydantic>=2.10,<3",
     "pydantic-settings>=2.7,<3",
     "PyYAML>=6,<7",
@@ -19,3 +17,10 @@ dependencies = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pythonboot"]
+
+[dependency-groups]
+dev = ["pythonboot-starter-web>=0.1.0,<0.2"]
+
+[tool.uv.sources]
+pythonboot-starter-web = { path = "../PythonBootStarter/starters/pythonboot-starter-web", editable = true }
+pythonboot-web = { path = "../PythonBootStarter/modules/pythonboot-web", editable = true }

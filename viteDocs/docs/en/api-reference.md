@@ -1,5 +1,8 @@
 # Complete API parameters
 
+Import core APIs from `pythonboot`; import Web bootstrap, controllers, routes, dependency bridges,
+and request context from `pythonboot_web`. See [Web Starter](/en/web-starter) for installation.
+
 ## Application and container
 
 | API | Parameters |

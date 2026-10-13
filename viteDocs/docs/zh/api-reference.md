@@ -2,6 +2,9 @@
 
 本页汇总公开声明的全部参数；未列出的 `**options` 原样传给 FastAPI 对应对象。
 
+核心 API 从 `pythonboot` 导入；Web 启动、Controller、路由、依赖桥接和请求上下文
+从 `pythonboot_web` 导入，安装方式见 [Web Starter](/zh/web-starter)。
+
 ## 启动与容器
 
 | API | 参数 |

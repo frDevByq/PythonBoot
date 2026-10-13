@@ -2,21 +2,28 @@
 
 [中文](README.md) | English
 
-PythonBoot is a FastAPI-based Python backend framework inspired by Spring Boot. It provides a composed bootstrap decorator, Bean scanning, singleton/prototype IoC containers, constructor and property injection, lifecycle management, and AOP.
+PythonBoot is a Python backend framework inspired by Spring Boot, with independently packaged core and FastAPI Web integration. It provides a composed bootstrap decorator, Bean scanning, singleton/prototype IoC containers, constructor and property injection, lifecycle management, and AOP.
 
 Python 3.12 or later is required. See [AGENTS.md](AGENTS.md) for dependencies and development conventions, and [Architecture](docs/architecture.en.md) for module responsibilities.
+
+Install `pythonboot` for core functionality or `pythonboot-starter-web` for Web applications.
+The Starter includes `pythonboot-web`, the core, FastAPI, and Uvicorn. Import core APIs from
+`pythonboot` and Web/bootstrap APIs from `pythonboot_web`. The implementation lives in the sibling
+`PythonBootStarter/modules/pythonboot-web` project. Former `pythonboot.web` and core top-level Web
+exports were removed; YAML keys remain unchanged. Local examples require sibling checkouts of both
+repositories: `uv sync` installs the development group, while `uv sync --no-dev` installs only the core.
 
 The project uses a `src` layout. Install it before starting the sample:
 
 ```bash
-pip install -e .
-uvicorn main:app --reload
+uv sync
+uv run uvicorn main:app --reload
 ```
 
 `examples/` is a sample backend built on the framework. Its bootstrap class is `examples/test_application.py` and extends `PythonBootApplication`. By default, a bootstrap class recursively scans its own package:
 
 ```python
-from pythonboot import PythonBootApplication, pythonboot_application
+from pythonboot_web import PythonBootApplication, pythonboot_application
 
 
 @pythonboot_application
@@ -58,7 +65,8 @@ active:
 
 ```python
 from pydantic_settings import BaseSettings
-from pythonboot import PythonBootApplication, configuration, configuration_properties, pythonboot_application
+from pythonboot import configuration, configuration_properties
+from pythonboot_web import PythonBootApplication, pythonboot_application
 
 
 @configuration
@@ -101,7 +109,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import Query
-from pythonboot import date_time, get
+from pythonboot_web import date_time, get
 
 
 @get("/report")
@@ -114,7 +122,8 @@ def report(
 Use `@controller` for controller classes and inject services through constructors. Route methods use `@get`, `@post`, `@put`, `@patch`, `@delete`, or `@route`:
 
 ```python
-from pythonboot import autowired, controller, get, service
+from pythonboot import autowired, service
+from pythonboot_web import controller, get
 
 
 @service
@@ -141,7 +150,8 @@ Beans are instantiated during ASGI lifespan. Components and Beans can name synch
 Use `autowired()` only on explicitly annotated properties:
 
 ```python
-from pythonboot import autowired, controller, get
+from pythonboot import autowired
+from pythonboot_web import controller, get
 
 
 @controller(prefix="/health")
@@ -160,7 +170,8 @@ Both declarations and properties support lazy loading:
 ```python
 from datetime import datetime
 
-from pythonboot import autowired, component, controller, get
+from pythonboot import autowired, component
+from pythonboot_web import controller, get
 
 
 @component(lazy=True)
@@ -261,7 +272,8 @@ The current application container is bound automatically in requests, WebSockets
 Services and aspects can obtain the current HTTP request with `RequestContextHolder`:
 
 ```python
-from pythonboot import RequestContextHolder, service
+from pythonboot import service
+from pythonboot_web import RequestContextHolder
 
 
 @service
@@ -366,7 +378,7 @@ Use `@controller_advise` to declare a global exception-handling Bean and `@excep
 ```python
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from pythonboot import controller_advise, exception_handler
+from pythonboot_web import controller_advise, exception_handler
 
 
 @controller_advise

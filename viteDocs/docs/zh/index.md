@@ -5,7 +5,7 @@ PythonBoot 是基于 FastAPI、借鉴 Spring Boot 组织方式的后端框架。
 ## 最小应用
 
 ```python
-from pythonboot import PythonBootApplication, pythonboot_application
+from pythonboot_web import PythonBootApplication, pythonboot_application
 
 @pythonboot_application
 class Application(PythonBootApplication):
@@ -18,9 +18,12 @@ app = Application().app
 
 ## 使用边界
 
-- Python >= 3.12；框架依赖 FastAPI、Pydantic、pydantic-settings、PyYAML、wrapt。
+- Python >= 3.12；核心依赖 Pydantic、pydantic-settings、PyYAML、wrapt；Web Starter 引入 FastAPI 和 Uvicorn。
 - Controller 使用类和 `@controller`；接口继续使用 FastAPI 的 `Query`、`Body`、`Depends`、响应模型等能力。
 - 所有 Bean 都归属某个应用实例。容器不激活时不能获取 Bean。
 - 配置目录可提供 `application.yml` 和按 profile 覆盖的 `application-{profile}.yml`。
 
 下一步从[应用与扫描](/zh/application)开始，或查看[PythonBoot / Spring Boot 对照](/zh/spring-comparison)。
+
+Web 应用使用 `uv add pythonboot-starter-web` 安装。模块职责和导入迁移见
+[Web Starter 与独立实现包](/zh/web-starter)。

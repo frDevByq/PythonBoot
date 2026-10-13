@@ -5,7 +5,7 @@
 `PythonBootApplication` 构造后提供 `app: FastAPI` 和 `context: ApplicationContext`。`run(host="127.0.0.1", port=8000, log_level="info")` 仅适合直接启动；热重载、多 worker 请用 Uvicorn 模块入口。
 
 ```python
-from pythonboot import PythonBootApplication, pythonboot_application
+from pythonboot_web import PythonBootApplication, pythonboot_application
 
 @pythonboot_application(scan_packages=("myapp.**",), exclude=(LegacyService,))
 class Application(PythonBootApplication):
@@ -35,7 +35,7 @@ app = application.app
 当不需要启动类时直接创建独立 FastAPI 应用：
 
 ```python
-from pythonboot import create_app
+from pythonboot_web import create_app
 
 app = create_app(
     title="Inventory API", version="1.0.0",

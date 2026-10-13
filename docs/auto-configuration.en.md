@@ -94,7 +94,7 @@ Application definitions are always registered first. Auto-configurations are pro
 The bootstrap annotation can exclude a class directly:
 
 ```python
-from pythonboot import PythonBootApplication, pythonboot_application
+from pythonboot_web import PythonBootApplication, pythonboot_application
 from pythonboot_postgres.configuration import PostgresAutoConfiguration
 
 

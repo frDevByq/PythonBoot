@@ -5,7 +5,7 @@
 `PythonBootApplication` exposes `app: FastAPI` and `context: ApplicationContext`. `run(host="127.0.0.1", port=8000, log_level="info")` starts Uvicorn directly; use a Uvicorn module entry for reload or multiple workers.
 
 ```python
-from pythonboot import PythonBootApplication, pythonboot_application
+from pythonboot_web import PythonBootApplication, pythonboot_application
 
 @pythonboot_application(scan_packages=("myapp.**",), exclude=(LegacyService,))
 class Application(PythonBootApplication):
@@ -29,7 +29,7 @@ Namespace directories are supported. Scanning stays inside selected paths. `excl
 ## `create_app`
 
 ```python
-from pythonboot import create_app
+from pythonboot_web import create_app
 app = create_app(title="Inventory API", version="1.0.0", scan_packages=("inventory",),
                  config_dir="config", auto_configure=True,
                  exclude_auto_configurations=("vendor.CacheAutoConfiguration",))

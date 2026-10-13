@@ -6,7 +6,8 @@
 from fastapi import Body
 from pydantic import BaseModel
 from typing import Annotated
-from pythonboot import PythonBootApplication, pythonboot_application, autowired, controller, get, post, service, transactional
+from pythonboot import autowired, service, transactional
+from pythonboot_web import PythonBootApplication, pythonboot_application, controller, get, post
 
 class OrderCreate(BaseModel): sku: str
 @service

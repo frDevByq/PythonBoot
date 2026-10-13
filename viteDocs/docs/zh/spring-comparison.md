@@ -8,10 +8,8 @@
 from typing import Annotated
 from fastapi import Body
 from pydantic import BaseModel
-from pythonboot import (
-    PythonBootApplication, pythonboot_application, autowired, controller, get, post,
-    service, transactional, RequestContextHolder,
-)
+from pythonboot import autowired, service, transactional
+from pythonboot_web import PythonBootApplication, pythonboot_application, controller, get, post, RequestContextHolder
 
 class OrderCreate(BaseModel):
     sku: str

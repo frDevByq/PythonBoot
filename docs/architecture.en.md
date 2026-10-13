@@ -12,9 +12,15 @@ During ASGI lifespan startup, it resolves constructor dependencies, creates sing
 - `context`: owns Bean instances, dependencies, scopes, and destruction.
 - `aop`: applies advice and proxies to matching Bean methods.
 - `config`: reads configuration and binds properties.
-- `web`: integrates container capabilities with FastAPI.
-- `boot`: orchestrates the above modules and exposes `create_app` and `PythonBootApplication`.
+- Independent `pythonboot_web` package: integrates the container with FastAPI and exposes
+  `create_app`, `PythonBootApplication`, and `pythonboot_application` from
+  `PythonBootStarter/modules/pythonboot-web`.
+- Core `boot`: assembles auto-configuration without depending on FastAPI or the Web implementation.
 - `util`: provides `ContextUtil` for accessing the current container and Beans by name or type.
+
+Web applications install `pythonboot-starter-web`, which depends on `pythonboot-web` and transitively
+on `pythonboot`. Core and Web APIs use the `pythonboot` and `pythonboot_web` imports respectively.
+The core stays in this repository.
 
 `@pythonboot_application` is used with `PythonBootApplication`. It recursively scans the bootstrap package by default; `scan_packages` overrides the default scope. `exclude=(SomeClass,)` excludes exact classes consistently from component scanning, auto-configuration, and controller routes. Excluding a configuration class also excludes its factories, and a factory returning an excluded class is not registered. Constructors and `create_app` accept the same `exclude` argument.
 

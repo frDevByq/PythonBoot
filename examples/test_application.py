@@ -3,7 +3,7 @@
 from pathlib import Path
 import sys
 
-from pythonboot import PythonBootApplication, pythonboot_application, RequestContextHolder
+from pythonboot_web import PythonBootApplication, pythonboot_application, RequestContextHolder
 
 
 @pythonboot_application

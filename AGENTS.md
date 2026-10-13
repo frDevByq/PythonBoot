@@ -21,32 +21,34 @@
 
 | 类型 | 依赖 | 版本范围 | 用途 |
 | --- | --- | --- | --- |
-| 运行时 | fastapi | >=0.115,<1 | ASGI Web 框架、路由和 OpenAPI |
-| 运行时 | uvicorn[standard] | >=0.34,<1 | ASGI 服务及本地热重载 |
 | 运行时 | pydantic | >=2.10,<3 | 数据模型与校验 |
 | 运行时 | pydantic-settings | >=2.7,<3 | 环境变量和配置加载 |
 | 运行时 | PyYAML | >=6,<7 | application YAML 配置文件解析 |
 | 运行时 | wrapt | >=1.17,<3 | AOP 装饰器及代理基础 |
 | 构建 | hatchling | >=1.27,<2 | 构建 src 布局的软件包 |
+| 开发 | pythonboot-starter-web | >=0.1.0,<0.2 | 同级 Starter 仓库的 Web 示例依赖，通过 UV 本地可编辑来源接入 |
+
+Web 实现已迁入同级 `PythonBootStarter/modules/pythonboot-web`，该包依赖
+`pythonboot>=0.1.0,<0.2`、`fastapi>=0.115,<1` 和 `uvicorn[standard]>=0.34,<1`。
+`pythonboot-starter-web` 聚合 `pythonboot-web>=0.1.0,<0.2`；核心包不依赖 Web 实现。
 
 - Python 版本要求：>=3.12。
 - 新增、删除、升级依赖或变更 extras 时，必须在同一次修改中同步更新
   `pyproject.toml` 和本文件的依赖清单、用途说明。
 - 若后续引入锁文件，依赖变更也必须同步更新锁文件；执行生成命令前须获得用户授权。
 - 新增依赖应有明确用途；标准库可以满足的功能优先使用标准库。
-- 当前未引入开发或测试依赖；新增时同样登记到本文件。
+- 开发依赖用于运行 Web 示例，未引入测试依赖；新增时同样登记到本文件。
 
 ## 目录与职责
 
 ```text
 src/pythonboot/
-  boot/          应用创建、启动流程和自动配置编排
+  boot/          核心自动配置编排
   beans/         Bean 元数据、声明装饰器和组件扫描
   context/       IoC 容器、依赖解析、作用域和生命周期
   aop/           切面、切点、通知及代理
   transaction/   事务定义、管理器接口、状态及声明式事务元数据
   task/          任务执行器、线程池调度、拒绝策略和关闭管理
-  web/           FastAPI 路由、依赖桥接及异常处理适配
   config/        配置模型、配置源和属性绑定
   exceptions/    框架异常
   util/          容器上下文等公共工具
@@ -59,6 +61,9 @@ examples/        基于 PythonBoot 框架的样例后端项目
   test_application.py  样例项目启动类
 docs/            架构及使用文档
 main.py          本地示例 ASGI 入口
+../PythonBootStarter/
+  modules/pythonboot-web/          FastAPI 集成及 Web 启动，导入包 pythonboot_web
+  starters/pythonboot-starter-web/ Web 依赖聚合包
 ```
 
 ## 实现约定
@@ -78,7 +83,9 @@ main.py          本地示例 ASGI 入口
 - 非必要不创建 `__init__.py`；仅用于公共接口导出、必要的包解析或实际初始化逻辑，
   不为目录标记或说明文字创建。`examples/__init__.py` 保留以避免同名第三方包遮蔽样例项目。
 - `beans` 负责声明和发现，`context` 负责实例化和依赖解析，避免互相循环引用。
-- `beans`、`context`、`aop` 不依赖 FastAPI；Web 集成集中在 `web`，启动编排放在 `boot`。
+- 核心 `pythonboot` 不依赖 FastAPI；Web 集成和 ASGI 启动编排集中在独立包
+  `pythonboot_web`，核心 `boot` 保留自动配置编排。核心接口从 `pythonboot` 导入，
+  Controller、路由、请求上下文及 Web 启动接口从 `pythonboot_web` 导入。
 - 容器属于应用实例，禁止使用全局可变容器保存所有应用的 Bean。
 - `ContextUtil` 使用 ContextVar 绑定当前应用容器；在 lifespan 和请求中自动绑定，
   独立任务显式绑定。不以全局默认容器兜底，避免多应用串用 Bean。

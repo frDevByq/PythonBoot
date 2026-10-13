@@ -4,7 +4,8 @@
 from datetime import datetime
 from typing import Annotated
 from fastapi import Body, Query
-from pythonboot import autowired, controller, get, post, date_time
+from pythonboot import autowired
+from pythonboot_web import controller, get, post, date_time
 
 @controller(prefix="/orders", tags=["Orders"], dependencies=[])
 class OrderController:

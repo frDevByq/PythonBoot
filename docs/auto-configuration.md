@@ -108,7 +108,7 @@ Bean 条件观察此前已注册的定义，不观察未来配置。
 启动注解支持直接按类排除：
 
 ```python
-from pythonboot import PythonBootApplication, pythonboot_application
+from pythonboot_web import PythonBootApplication, pythonboot_application
 from pythonboot_postgres.configuration import PostgresAutoConfiguration
 
 

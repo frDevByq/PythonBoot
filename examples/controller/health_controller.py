@@ -4,7 +4,8 @@ from typing import Annotated
 
 from fastapi import Body, Path, Query
 
-from pythonboot import autowired, controller, get, post
+from pythonboot import autowired
+from pythonboot_web import controller, get, post
 from examples.domain.common import BaseResult
 from examples.domain.health import Health, HealthCheckRequest
 from examples.service.health_service import HealthService

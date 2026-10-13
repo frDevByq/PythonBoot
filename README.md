@@ -2,17 +2,23 @@
 
 [English](README.en.md) | 中文
 
-基于 FastAPI、借鉴 Spring Boot 的 Python 后端框架。
+借鉴 Spring Boot 的 Python 后端框架，核心容器与 FastAPI Web 实现独立发布。
 提供启动组合装饰器、Bean 扫描、单例／多例 IoC 容器、构造器及属性注入、生命周期管理和 AOP。
 
 要求 Python >=3.12。依赖与开发规范见 [AGENTS.md](AGENTS.md)，
 模块职责见 [架构文档](docs/architecture.md)。
 
+核心安装 `pythonboot`；Web 应用安装 `pythonboot-starter-web`，自动引入
+`pythonboot-web`、核心、FastAPI 和 Uvicorn。核心接口从 `pythonboot` 导入，Web 与启动
+接口从 `pythonboot_web` 导入。实现位于同级 `PythonBootStarter/modules/pythonboot-web`。
+原来的 `pythonboot.web` 和核心顶层 Web 导出已移除，YAML 配置键保持不变。
+本地示例依赖两个同级仓库，`uv sync` 安装开发组；纯核心使用 `uv sync --no-dev`。
+
 项目采用 `src` 包布局，先安装项目，再启动示例：
 
 ```bash
-pip install -e .
-uvicorn main:app --reload
+uv sync
+uv run uvicorn main:app --reload
 ```
 
 `examples/` 约定为基于框架的样例后端项目，启动类位于
@@ -20,7 +26,7 @@ uvicorn main:app --reload
 启动类默认递归扫描自身所在包：
 
 ```python
-from pythonboot import PythonBootApplication, pythonboot_application
+from pythonboot_web import PythonBootApplication, pythonboot_application
 
 @pythonboot_application
 class TestApplication(PythonBootApplication):
@@ -96,7 +102,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import Query
-from pythonboot import date_time, get
+from pythonboot_web import date_time, get
 
 @get("/report")
 def report(
@@ -113,7 +119,8 @@ active:
 
 ```python
 from pydantic_settings import BaseSettings
-from pythonboot import PythonBootApplication, configuration, configuration_properties, pythonboot_application
+from pythonboot import configuration, configuration_properties
+from pythonboot_web import PythonBootApplication, pythonboot_application
 
 @configuration
 @configuration_properties("health")
@@ -132,7 +139,8 @@ application = Application(config_dir="./config")
 方法使用 `@get`、`@post`、`@put`、`@patch`、`@delete` 或 `@route` 声明路由。
 
 ```python
-from pythonboot import autowired, controller, get, service
+from pythonboot import autowired, service
+from pythonboot_web import controller, get
 
 @service
 class HealthService:
@@ -161,7 +169,8 @@ Bean 工厂必须是同步函数，外部资源在初始化方法中创建，在
 属性注入用法：
 
 ```python
-from pythonboot import autowired, controller, get
+from pythonboot import autowired
+from pythonboot_web import controller, get
 
 @controller(prefix="/health")
 class HealthController:
@@ -188,7 +197,8 @@ Bean 在属性注入前已注册最终代理，因此支持 `A.b → B.a → A` 
 ```python
 from datetime import datetime
 
-from pythonboot import autowired, component, controller, get
+from pythonboot import autowired, component
+from pythonboot_web import controller, get
 
 @component(lazy=True)
 class TimeProvider:
@@ -331,7 +341,8 @@ service = ContextUtil.get_bean(HealthService, qualifier="local")
 Service 和 AOP 可通过 `RequestContextHolder` 获取当前 HTTP 请求：
 
 ```python
-from pythonboot import RequestContextHolder, service
+from pythonboot import service
+from pythonboot_web import RequestContextHolder
 
 @service
 class OrderService:
@@ -460,7 +471,7 @@ python -m examples.test_application
 ```python
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from pythonboot import controller_advise, exception_handler
+from pythonboot_web import controller_advise, exception_handler
 
 @controller_advise
 class GlobalExceptionHandler:

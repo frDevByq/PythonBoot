@@ -5,7 +5,8 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from pythonboot import autowired, controller, get, inject
+from pythonboot import autowired
+from pythonboot_web import controller, get, inject
 from examples.config.current_time import CurrentTime, PrototypeTime
 from examples.domain.common import BaseResult
 

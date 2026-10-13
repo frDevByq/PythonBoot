@@ -6,7 +6,8 @@
 from datetime import datetime
 from typing import Annotated
 from fastapi import Body, Depends, Query
-from pythonboot import autowired, controller, get, post, inject, date_time
+from pythonboot import autowired
+from pythonboot_web import controller, get, post, inject, date_time
 
 @controller(prefix="/orders", tags=["订单"], dependencies=[])
 class OrderController:
@@ -29,7 +30,7 @@ class OrderController:
 
 ```python
 from fastapi import Request
-from pythonboot import controller_advise, exception_handler
+from pythonboot_web import controller_advise, exception_handler
 
 @controller_advise
 class ErrorAdvice:
