@@ -359,3 +359,19 @@ python -m examples.test_application
 
 默认监听 `127.0.0.1:8000`，`run()` 支持设置 `host`、`port` 和 `log_level`。
 样例提供 `GET /health`。热重载使用 `uvicorn main:app --reload`。
+
+## 全局异常处理
+
+使用 `@controller_advise` 声明全局异常处理 Bean，`@exception_handler` 指定处理的异常类型或 HTTP 状态码。处理方法接收原生 FastAPI 的 `Request` 与异常对象，并返回响应：
+
+```python
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from pythonboot import controller_advise, exception_handler
+
+@controller_advise
+class GlobalExceptionHandler:
+    @exception_handler(ValueError)
+    def handle_value_error(self, request: Request, error: ValueError) -> JSONResponse:
+        return JSONResponse(status_code=400, content={"detail": str(error)})
+```

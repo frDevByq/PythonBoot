@@ -127,7 +127,7 @@ def configuration_properties(prefix: str) -> Callable[[T], T]:
 
         @classmethod
         def settings_customise_sources(
-            settings_cls: type[BaseSettings], init_settings: Any, env_settings: Any,
+            cls: type[BaseSettings], settings_cls: type[BaseSettings], init_settings: Any, env_settings: Any,
             dotenv_settings: Any, file_secret_settings: Any,
         ) -> tuple[Any, ...]:
             sources = original_sources(

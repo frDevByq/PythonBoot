@@ -14,7 +14,7 @@ from pythonboot.boot.autoconfiguration import assemble_auto_configurations
 from pythonboot.context import ApplicationContext
 from pythonboot.config import load_configuration
 from pythonboot.util import ContextUtil
-from pythonboot.web import ApplicationContextMiddleware, register_routers
+from pythonboot.web import ApplicationContextMiddleware, register_exception_handlers, register_routers
 
 
 def create_app(
@@ -59,6 +59,7 @@ def create_app(
     app.router.lifespan_context = lifespan
     app.add_middleware(ApplicationContextMiddleware, context=context)
     register_routers(app, result.modules, exclude=excluded_classes)
+    register_exception_handlers(app, result.modules, exclude=excluded_classes)
     return app
 
 

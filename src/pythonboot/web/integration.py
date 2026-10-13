@@ -104,3 +104,45 @@ def register_routers(
                             methods=list(definition.methods), **definition.options,
                         )
                 app.include_router(router)
+
+
+def register_exception_handlers(
+    app: FastAPI, modules: tuple[ModuleType, ...], *, exclude: tuple[type, ...] = (),
+) -> None:
+    """Register managed controller advice methods as FastAPI exception handlers."""
+    excluded_classes = set(exclude)
+    for module in modules:
+        for advice_type in vars(module).values():
+            if (
+                not inspect.isclass(advice_type)
+                or advice_type in excluded_classes
+                or advice_type.__module__ != module.__name__
+                or not vars(advice_type).get("__pythonboot_controller_advise__")
+            ):
+                continue
+            component_options = vars(advice_type)["__pythonboot_component__"]
+            bean_name = component_options.name or advice_type.__name__[:1].lower() + advice_type.__name__[1:]
+            for method_name, method in vars(advice_type).items():
+                targets = getattr(method, "__pythonboot_exception_handlers__", ())
+                if not targets:
+                    continue
+                signature = inspect.signature(method)
+                parameters = list(signature.parameters.values())
+                if not parameters or parameters[0].name != "self":
+                    raise BeanDefinitionError(
+                        f"Exception handler {advice_type.__name__}.{method_name} must be an instance method"
+                    )
+
+                async def handler(
+                    request: Request, error: Exception, *,
+                    _method_name: str = method_name, _advice_type: type = advice_type,
+                    _bean_name: str = bean_name,
+                ) -> Any:
+                    instance = request.app.state.context.get_bean(_advice_type, name=_bean_name)
+                    result = getattr(instance, _method_name)(request, error)
+                    if inspect.isawaitable(result):
+                        return await result
+                    return result
+
+                for target in targets:
+                    app.add_exception_handler(target, handler)

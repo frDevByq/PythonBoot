@@ -14,14 +14,16 @@ from pythonboot.beans.conditions import (
 from pythonboot.context import ApplicationContext, autowired
 from pythonboot.config import ConfigurationPropertiesOptions, configuration_properties
 from pythonboot.util import ContextUtil
-from pythonboot.web import controller, delete, get, inject, patch, post, put, route
+from pythonboot.web import (
+    controller, controller_advise, delete, exception_handler, get, inject, patch, post, put, route,
+)
 
 __all__ = [
     "PythonBootApplication", "create_app", "pythonboot_application",
     "auto_configuration", "conditional_on_bean", "conditional_on_missing_bean",
     "conditional_on_module", "conditional_on_property",
     "ApplicationContext", "bean", "component", "configuration", "service", "inject",
-    "controller", "route", "get", "post", "put", "patch", "delete",
+    "controller", "controller_advise", "exception_handler", "route", "get", "post", "put", "patch", "delete",
     "aspect", "pointcut", "before", "after", "after_returning", "after_throwing", "around",
     "JoinPoint", "ProceedingJoinPoint", "MethodInfo", "Pointcut",
     "annotation", "MethodAnnotation",

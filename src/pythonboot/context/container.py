@@ -182,13 +182,18 @@ class ApplicationContext:
                 owner = self._resolve(self._find_definition(definition.owner))
                 dependencies.append(owner)
                 factory = factory.__get__(owner.instance, definition.owner)
+            kwargs: dict[str, Any] = {}
+            configuration_properties = (
+                inspect.isclass(factory)
+                and "__pythonboot_configuration_properties__" in vars(factory)
+            )
             hint_source = factory.__init__ if inspect.isclass(factory) else factory
             try:
-                hints = get_type_hints(hint_source, include_extras=True)
+                hints = {} if configuration_properties else get_type_hints(hint_source, include_extras=True)
             except (NameError, TypeError) as error:
                 raise BeanDefinitionError(f"Cannot resolve dependency type hints for bean {name}") from error
-            kwargs: dict[str, Any] = {}
-            for parameter in inspect.signature(factory).parameters.values():
+            parameters = () if configuration_properties else inspect.signature(factory).parameters.values()
+            for parameter in parameters:
                 if parameter.kind in (parameter.VAR_POSITIONAL, parameter.VAR_KEYWORD):
                     continue
                 if parameter.kind == parameter.POSITIONAL_ONLY:
