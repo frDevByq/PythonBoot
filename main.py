@@ -1,5 +1,5 @@
 """本地示例入口：uvicorn main:app --reload。"""
 
-from examples.demo.app import app
+from tests.test_application import app
 
 __all__ = ["app"]

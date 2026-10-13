@@ -1,1 +1,6 @@
-"""IoC 容器、依赖解析、作用域与生命周期。"""
+"""IoC container, dependency resolution, scopes, and lifecycle."""
+
+from pythonboot.context.container import ApplicationContext
+from pythonboot.context.injection import autowired
+
+__all__ = ["ApplicationContext", "autowired"]

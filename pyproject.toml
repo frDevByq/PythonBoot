@@ -13,6 +13,7 @@ dependencies = [
     "uvicorn[standard]>=0.34,<1",
     "pydantic>=2.10,<3",
     "pydantic-settings>=2.7,<3",
+    "PyYAML>=6,<7",
     "wrapt>=1.17,<3",
 ]
 
