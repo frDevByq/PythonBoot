@@ -1,23 +1,17 @@
 # Complete API parameters
 
-Import core APIs from `pythonboot`; import Web bootstrap, controllers, routes, dependency bridges,
-and request context from `pythonboot_web`. See [Web Starter](/en/web-starter) for installation.
+This page lists core public API parameters.
 
 ## Application and container
 
 | API | Parameters |
 | --- | --- |
-| `PythonBootApplication` | `title="PythonBoot"`, `version="0.1.0"`, `scan_packages=None`, `config_dir=None`, `auto_configure=True`, `exclude_auto_configurations=None`, `exclude=None`, `**FastAPI options` |
-| `create_app` | the above plus `scan_packages=()`, `exclude_modules=()`, `exclude_auto_configurations=()`, `exclude=()` |
-| `pythonboot_application` | `scan_packages=None`, `exclude_auto_configurations=()`, `exclude=()` |
 | `ApplicationContext` | `definitions=()`, `configuration=None` |
 | `get_bean` / `aget_bean` | class or bean name, `name=None`, `qualifier=None` |
 
-## Beans and Web
+## Beans
 
 `component`, `service`, `configuration`, and `bean(factory=None, *, ...)` all accept `name=None`, `init_method=None`, `destroy_method=None`, `lazy=False`, `scope="singleton"`, `primary=False`, `qualifiers=()`, `depends_on=()`. `autowired(*, name=None, required=True, lazy=False, qualifier=None)` declares an attribute. `postconstruct(method=None)` and `ondestroy(method=None)` have no options.
-
-`controller` accepts the same bean options plus `prefix=""`, `tags=None`, and `**APIRouter options`; `controller_advise` accepts bean options. `route(path, methods=("GET",), **FastAPI add_api_route options)` is the base of `get/post/put/patch/delete`. `exception_handler` accepts one exception class or integer status. `inject(bean_type, *, name=None, qualifier=None)`. `date_time(format)` accepts a non-empty string. `ResponseContext.redirect(url, status_code=307)` and `set_cookie(key, value, **SimpleCookie options)` configure response state.
 
 ## AOP, configuration, transactions and tasks
 
